@@ -15,28 +15,20 @@
 
 default_platform(:android)
 
-platform :android do
-
-
-
-  desc "Submit a new Internal app for test"
-  lane :internal do
-    gradle(task: 'bundle', build_type: 'Release')
-     upload_to_play_store(
-       track: 'internal',
-       aab: '../build/app/outputs/bundle/release/app-release.aab',
-       version_code: flutter_version()["version_code"],
-       skip_upload_screenshots: true,
-       skip_upload_images: true
-       )
-      rescue => exception
-      raise exception unless exception.message.include?('apkNotificationMessageKeyUpgradeVersionConflict')
-      puts 'Current version already present on the Play Store. Omitting this upload.'
-    end
-  end
-
-  desc "Deploy a new version to the Google Play"
-  lane :deploy do
-    gradle(task: "clean assembleRelease")
-    upload_to_play_store
-  end
+lane :release do
+  supply(
+    track: ENV["TRACK"],
+    validate_only: true
+    apk: "../build/app/outputs/apk/release/app-release.apk",
+    json_key_data: ENV["GOOGLE_CREDENTIALS"]
+  )
+endlane :promote do
+  supply(
+    track: ENV["TRAVIS_PULL_REQUEST_BRANCH"],
+    validate_only: true
+    track_promote_to: ENV["TRACK"],
+    apk: "../build/app/outputs/apk/release/app-release.apk",
+    json_key_data: ENV['GOOGLE_CREDENTIALS']
+  )
+end
+  
