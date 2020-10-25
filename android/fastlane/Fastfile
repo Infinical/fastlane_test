@@ -16,18 +16,23 @@
 default_platform(:android)
 
 platform :android do
-  desc "Runs all the tests"
-  lane :test do
-    gradle(task: "test")
-  end
 
-  desc "Submit a new Beta Build to Crashlytics Beta"
-  lane :beta do
-    gradle(task: "clean assembleRelease")
-    crashlytics
-  
-    # sh "your_script.sh"
-    # You can also use other beta testing services here
+
+
+  desc "Submit a new Internal app for test"
+  lane :internal do
+    gradle(task: 'bundle', build_type: 'Release')
+     upload_to_play_store(
+       track: 'internal',
+       aab: '../build/app/outputs/bundle/release/app-release.aab',
+       version_code: flutter_version()["version_code"],
+       skip_upload_screenshots: true,
+       skip_upload_images: true
+       )
+      rescue => exception
+      raise exception unless exception.message.include?('apkNotificationMessageKeyUpgradeVersionConflict')
+      puts 'Current version already present on the Play Store. Omitting this upload.'
+    end
   end
 
   desc "Deploy a new version to the Google Play"
@@ -35,4 +40,3 @@ platform :android do
     gradle(task: "clean assembleRelease")
     upload_to_play_store
   end
-end
