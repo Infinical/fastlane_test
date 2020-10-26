@@ -23,17 +23,17 @@ Generate release notes
 
 ----
 
-## Android
-### android beta
+## iOS
+### ios beta
 ```
-fastlane android beta
+fastlane ios beta
 ```
-Push a release build to beta track
-### android release
+Push a new beta build to TestFlight
+### ios release
 ```
-fastlane android release
+fastlane ios release
 ```
-Promote latest release build from beta to production and publish to the Play Store
+Promote latest release build from beta to production and publish to the App Store
 
 ----
 

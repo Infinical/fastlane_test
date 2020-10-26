@@ -1,34 +1,52 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
+import "../../fastlane/Fastlane.common"
 
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
+#fastlane_version "2.55.0"
+opt_out_usage
+
+before_all do
+  #ensure_git_branch
+  #ensure_git_status_clean
+  #git_pull
+end
 
 default_platform(:android)
 
-lane :release do
-  supply(
-    track: ENV["TRACK"],
-    validate_only: true
-    apk: "../build/app/outputs/apk/release/app-release.apk",
-    json_key_data: ENV["GOOGLE_CREDENTIALS"]
-  )
-endlane :promote do
-  supply(
-    track: ENV["TRAVIS_PULL_REQUEST_BRANCH"],
-    validate_only: true
-    track_promote_to: ENV["TRACK"],
-    apk: "../build/app/outputs/apk/release/app-release.apk",
-    json_key_data: ENV['GOOGLE_CREDENTIALS']
-  )
+platform :android do
+
+  desc "Build and push to play store track"
+  private_lane :build_and_push_to_play_store_track do |options|
+    get_build_name_and_build_number
+    release_notes(OS: 'android')
+    sh ("cd ../.. && flutter build apk --build-name=#{@build_name} --build-number=#{@build_number}")
+    upload_to_play_store(
+      track: options[:track],
+      apk: '../build/app/outputs/apk/release/app-release.apk',
+      json_key_data: ENV['GOOGLE_DEVELOPER_SERVICE_ACCOUNT_ACTOR_FASTLANE'],
+      #skip_upload_screenshots: false,
+      #skip_upload_images: false
+    )
+  end
+
+  desc 'Push a release build to beta track'
+  lane :beta do
+    #ensure_git_branch(branch: 'dev')
+    build_and_push_to_play_store_track(track: "beta")
+  end
+
+  desc "Promote latest release build from beta to production and publish to the Play Store"
+  lane :release do
+    #ensure_git_branch(branch: 'master')
+    #build_and_push_to_play_store_track(track: "production")
+    release_notes(OS: 'android')
+    upload_to_play_store(
+      track: 'beta',
+      track_promote_to: 'production',
+      json_key_data: ENV['GOOGLE_DEVELOPER_SERVICE_ACCOUNT_ACTOR_FASTLANE'],
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+  end
+
 end
-  

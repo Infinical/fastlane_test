@@ -39,3 +39,8 @@ app.*.symbols
 
 # Obfuscation related
 app.*.map.json
+
+
+**/android/key.properties
+**/android/key.jks
+**/android/key.jks.old
