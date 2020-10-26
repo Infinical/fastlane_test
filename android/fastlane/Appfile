@@ -1,1 +1,1 @@
-package_name("com.orbsoft.todo") # e.g. com.krausefx.app
+package_name("com.infilabs.fastlane_test") # e.g. com.krausefx.app
